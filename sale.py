@@ -2,13 +2,71 @@
 # copyright notices and license terms.
 from decimal import Decimal
 
-from trytond.pool import PoolMeta
+from trytond.model import ModelView
+from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 
-__all__ = ['SaleLine']
+__all__ = ['Sale', 'SaleLine']
 __metaclass__ = PoolMeta
 
 _ZERO = Decimal('0.0')
+
+
+class Sale:
+    __name__ = 'sale.sale'
+
+    @classmethod
+    def __setup__(cls):
+        super(Sale, cls).__setup__()
+        cls._buttons.update({
+                'update_subtotals': {
+                    'invisible': Eval('state') != 'draft',
+                    'readonly': ~Eval('lines', []),
+                    },
+                })
+
+    @classmethod
+    @ModelView.button
+    def update_subtotals(cls, sales):
+        pool = Pool()
+        SaleLine = pool.get('sale.line')
+
+        to_create = []
+        for sale in sales:
+            title = subtitle = None
+            sequence = 1
+            for line in sale.lines:
+                if line.type == 'subsubtotal':
+                    subtitle = None
+                elif line.type in ('subtotal', 'subtitle', 'title'):
+                    if subtitle:
+                        to_create.append(
+                            subtitle.get_subtotal(sequence)._save_values)
+                        sequence += 1
+                    if line.type == 'subtotal':
+                        title = subtitle = None
+                    elif line.type == 'subtitle':
+                        subtitle = line
+                    elif line.type == 'title':
+                        if title:
+                            to_create.append(
+                                title.get_subtotal(sequence)._save_values)
+                            sequence += 1
+                        title = line
+                        subtitle = None
+                if line.sequence != sequence:
+                    line.sequence = sequence
+                    line.save()
+                sequence += 1
+            if subtitle:
+                to_create.append(
+                    subtitle.get_subtotal(sequence)._save_values)
+                sequence += 1
+            if title:
+                to_create.append(
+                    title.get_subtotal(sequence)._save_values)
+        if to_create:
+            SaleLine.create(to_create)
 
 
 class SaleLine:
@@ -20,8 +78,10 @@ class SaleLine:
         for item in (('subsubtotal', 'Subsubtotal'), ('subtitle', 'Subtitle')):
             if item not in cls.type.selection:
                 cls.type.selection.append(item)
-
         cls.amount.states['invisible'] &= (Eval('type') != 'subsubtotal')
+        cls._error_messages.update({
+                'subtotal_prefix': 'Subtotal',
+                })
 
     def get_amount(self, name):
         if self.type != 'subsubtotal':
@@ -36,3 +96,15 @@ class SaleLine:
                     break
                 subsubtotal = _ZERO
         return subsubtotal
+
+    def get_subtotal(self, sequence):
+        Line = Pool().get('sale.line')
+        type_ = 'subtotal' if self.type == 'title' else 'subsubtotal'
+        prefix = self.raise_user_error('subtotal_prefix',
+            raise_exception=False)
+        return Line(
+            sale=self.sale,
+            sequence=sequence,
+            type=type_,
+            description='%s %s' % (prefix, self.description),
+            )

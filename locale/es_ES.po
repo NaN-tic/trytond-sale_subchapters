@@ -2,6 +2,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
+msgctxt "error:sale.line:"
+msgid "Subtotal"
+msgstr "Subtotal"
+
 msgctxt "selection:sale.line,type:"
 msgid "Subsubtotal"
 msgstr "Subsubtotal"
@@ -9,3 +13,7 @@ msgstr "Subsubtotal"
 msgctxt "selection:sale.line,type:"
 msgid "Subtitle"
 msgstr "Subtítulo"
+
+msgctxt "view:sale.sale:"
+msgid "Update Subtotals"
+msgstr ""
