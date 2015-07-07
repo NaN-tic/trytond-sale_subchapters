@@ -22,6 +22,7 @@ class Sale:
                 'update_subtotals': {
                     'invisible': Eval('state') != 'draft',
                     'readonly': ~Eval('lines', []),
+                    'icon': 'tryton-refresh',
                     },
                 })
 

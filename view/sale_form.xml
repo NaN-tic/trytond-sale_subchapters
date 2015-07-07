@@ -4,8 +4,6 @@
 <data>
     <xpath expr="/form//group[@id='buttons']/button[@name='cancel']"
             position="before">
-        <button name="update_subtotals" string="Update Subtotals"
-            icon="tryton-refresh"/>
-        <newline/>
+        <button name="update_subtotals" string="Update Subtotals"/>
     </xpath>
 </data>
