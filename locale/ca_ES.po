@@ -16,4 +16,4 @@ msgstr "Subtítol"
 
 msgctxt "view:sale.sale:"
 msgid "Update Subtotals"
-msgstr ""
+msgstr "Actualizar subtotales"
