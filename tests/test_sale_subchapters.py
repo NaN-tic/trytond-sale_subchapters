@@ -1,34 +1,24 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-import doctest
 import unittest
 from decimal import Decimal
 
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import test_depends
-from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT
-from trytond.transaction import Transaction
+from trytond.pool import Pool
+from trytond.tests.test_tryton import ModuleTestCase, with_transaction
+
+from trytond.modules.company.tests import create_company, set_company
+from trytond.modules.account.tests import create_chart
 
 
-class TestCase(unittest.TestCase):
+class TestCase(ModuleTestCase):
     'Test module'
-
-    def setUp(self):
-        trytond.tests.test_tryton.install_module('sale_subchapters')
-        self.account = POOL.get('account.account')
-        self.company = POOL.get('company.company')
-        self.sale = POOL.get('sale.sale')
-        self.sale_line = POOL.get('sale.line')
-        self.party = POOL.get('party.party')
-        self.payment_term = POOL.get('account.invoice.payment_term')
-        self.user = POOL.get('res.user')
-
-    def test0006depends(self):
-        'Test depends'
-        test_depends()
+    module = 'sale_subchapters'
 
     def create_sale(self, company, customer, payment_term):
-        sale = self.sale()
+        pool = Pool()
+        Sale = pool.get('sale.sale')
+        sale = Sale()
         sale.company = company
         sale.party = customer
         sale.invoice_address = customer.addresses[0]
@@ -43,7 +33,9 @@ class TestCase(unittest.TestCase):
     def create_sale_line(self, sale, line_type, suffix=None):
         assert line_type in ('line', 'title', 'subtitle', 'subtotal',
             'subsubtotal')
-        sale_line = self.sale_line()
+        pool = Pool()
+        SaleLine = pool.get('sale.line')
+        sale_line = SaleLine()
         sale.lines = list(sale.lines) + [sale_line]
         sale_line.type = line_type
         if line_type == 'line':
@@ -57,32 +49,31 @@ class TestCase(unittest.TestCase):
         if suffix:
             sale_line.description += suffix
 
+    @with_transaction()
     def test0010subsubtotal_amount(self):
         'Test subsubtotal line amount'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            self.user.write([self.user(USER)], {
-                'main_company': company.id,
-                'company': company.id,
-                })
+        pool = Pool()
+        Account = pool.get('account.account')
+        Party = pool.get('party.party')
+        PaymentTerm = pool.get('account.invoice.payment_term')
 
-            receivable, = self.account.search([
-                ('kind', '=', 'receivable'),
-                ('company', '=', company.id),
-                ])
-            payment_term, = self.payment_term.create([{
-                        'name': 'Payment Term',
-                        'lines': [
-                            ('create', [{
-                                        'sequence': 0,
-                                        'type': 'remainder',
-                                        'months': 0,
-                                        'days': 0,
-                                        }])]
+        # Create Company
+        party = Party(name='Party')
+        party.save()
+        company = create_company()
+        with set_company(company):
+
+            # Create Chart of Accounts
+            create_chart(company)
+            receivable, = Account.search([('kind', '=', 'receivable')])
+
+            # Create Payment Term
+            payment_term, = PaymentTerm.create([{
+                        'name': 'Direct',
+                        'lines': [('create', [{'type': 'remainder'}])]
                         }])
-            customer, = self.party.create([{
+
+            customer, = Party.create([{
                         'name': 'customer',
                         'addresses': [
                             ('create', [{}]),
@@ -168,32 +159,33 @@ class TestCase(unittest.TestCase):
             self.assertEqual(sale4.lines[-2].amount, Decimal('50'))
             self.assertEqual(sale4.lines[-1].amount, Decimal('60'))
 
+    @with_transaction()
     def test0020update_subtotals(self):
         'Test update_subtotals'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            self.user.write([self.user(USER)], {
-                'main_company': company.id,
-                'company': company.id,
-                })
+        pool = Pool()
+        Account = pool.get('account.account')
+        Party = pool.get('party.party')
+        PaymentTerm = pool.get('account.invoice.payment_term')
+        Sale = pool.get('sale.sale')
+        SaleLine = pool.get('sale.line')
 
-            receivable, = self.account.search([
-                ('kind', '=', 'receivable'),
-                ('company', '=', company.id),
-                ])
-            payment_term, = self.payment_term.create([{
-                        'name': 'Payment Term',
-                        'lines': [
-                            ('create', [{
-                                        'sequence': 0,
-                                        'type': 'remainder',
-                                        'months': 0,
-                                        'days': 0,
-                                        }])]
+        # Create Company
+        party = Party(name='Party')
+        party.save()
+        company = create_company()
+        with set_company(company):
+
+            # Create Chart of Accounts
+            create_chart(company)
+            receivable, = Account.search([('kind', '=', 'receivable')])
+
+            # Create Payment Term
+            payment_term, = PaymentTerm.create([{
+                        'name': 'Direct',
+                        'lines': [('create', [{'type': 'remainder'}])]
                         }])
-            customer, = self.party.create([{
+
+            customer, = Party.create([{
                         'name': 'customer',
                         'addresses': [
                             ('create', [{}]),
@@ -223,7 +215,7 @@ class TestCase(unittest.TestCase):
             sale1.save()
             self.assertEqual(len(sale1.lines), 10)
 
-            self.sale.update_subtotals([sale1])
+            Sale.update_subtotals([sale1])
             self.assertEqual(len(sale1.lines), 14)
             check_subtotal(sale1, 4, 'subsubtotal', ' A.1', Decimal('20.00'))
             check_subtotal(sale1, 9, 'subsubtotal', ' A.2', Decimal('30.00'))
@@ -231,7 +223,7 @@ class TestCase(unittest.TestCase):
             check_subtotal(sale1, 13, 'subtotal', ' B', Decimal('10.00'))
 
             # Execute update_subtotals again and nothing changes
-            self.sale.update_subtotals([sale1])
+            Sale.update_subtotals([sale1])
             self.assertEqual(len(sale1.lines), 14)
             check_subtotal(sale1, 4, 'subsubtotal', ' A.1', Decimal('20.00'))
             check_subtotal(sale1, 9, 'subsubtotal', ' A.2', Decimal('30.00'))
@@ -239,9 +231,9 @@ class TestCase(unittest.TestCase):
             check_subtotal(sale1, 13, 'subtotal', ' B', Decimal('10.00'))
 
             # Delete some subtotals and update them again
-            self.sale_line.delete([sale1.lines[4], sale1.lines[10]])
+            SaleLine.delete([sale1.lines[4], sale1.lines[10]])
             self.assertEqual(len(sale1.lines), 12)
-            self.sale.update_subtotals([sale1])
+            Sale.update_subtotals([sale1])
             self.assertEqual(len(sale1.lines), 14)
             check_subtotal(sale1, 4, 'subsubtotal', ' A.1', Decimal('20.00'))
             check_subtotal(sale1, 9, 'subsubtotal', ' A.2', Decimal('30.00'))
@@ -249,9 +241,9 @@ class TestCase(unittest.TestCase):
             check_subtotal(sale1, 13, 'subtotal', ' B', Decimal('10.00'))
 
             # Delete some subtotals and update them again
-            self.sale_line.delete([sale1.lines[9], sale1.lines[13]])
+            SaleLine.delete([sale1.lines[9], sale1.lines[13]])
             self.assertEqual(len(sale1.lines), 12)
-            self.sale.update_subtotals([sale1])
+            Sale.update_subtotals([sale1])
             self.assertEqual(len(sale1.lines), 14)
             check_subtotal(sale1, 4, 'subsubtotal', ' A.1', Decimal('20.00'))
             check_subtotal(sale1, 9, 'subsubtotal', ' A.2', Decimal('30.00'))
@@ -259,9 +251,9 @@ class TestCase(unittest.TestCase):
             check_subtotal(sale1, 13, 'subtotal', ' B', Decimal('10.00'))
 
             # Delete some subtotals and update them again
-            self.sale_line.delete([sale1.lines[4], sale1.lines[9]])
+            SaleLine.delete([sale1.lines[4], sale1.lines[9]])
             self.assertEqual(len(sale1.lines), 12)
-            self.sale.update_subtotals([sale1])
+            Sale.update_subtotals([sale1])
             self.assertEqual(len(sale1.lines), 14)
             check_subtotal(sale1, 4, 'subsubtotal', ' A.1', Decimal('20.00'))
             check_subtotal(sale1, 9, 'subsubtotal', ' A.2', Decimal('30.00'))
@@ -269,9 +261,9 @@ class TestCase(unittest.TestCase):
             check_subtotal(sale1, 13, 'subtotal', ' B', Decimal('10.00'))
 
             # Delete some subtotals and update them again
-            self.sale_line.delete([sale1.lines[10], sale1.lines[13]])
+            SaleLine.delete([sale1.lines[10], sale1.lines[13]])
             self.assertEqual(len(sale1.lines), 12)
-            self.sale.update_subtotals([sale1])
+            Sale.update_subtotals([sale1])
             self.assertEqual(len(sale1.lines), 14)
             check_subtotal(sale1, 4, 'subsubtotal', ' A.1', Decimal('20.00'))
             check_subtotal(sale1, 9, 'subsubtotal', ' A.2', Decimal('30.00'))
@@ -281,13 +273,5 @@ class TestCase(unittest.TestCase):
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
-    from trytond.modules.company.tests import test_company
-    for test in test_company.suite():
-        if test not in suite:
-            suite.addTest(test)
-    from trytond.modules.account.tests import test_account
-    for test in test_account.suite():
-        if test not in suite and not isinstance(test, doctest.DocTestCase):
-            suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     return suite
