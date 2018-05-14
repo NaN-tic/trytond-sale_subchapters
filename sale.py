@@ -7,13 +7,13 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 
 __all__ = ['Sale', 'SaleLine']
-__metaclass__ = PoolMeta
 
 _ZERO = Decimal('0.0')
 
 
 class Sale:
     __name__ = 'sale.sale'
+    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
@@ -72,6 +72,7 @@ class Sale:
 
 class SaleLine:
     __name__ = 'sale.line'
+    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
