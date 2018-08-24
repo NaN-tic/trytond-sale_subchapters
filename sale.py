@@ -11,9 +11,8 @@ __all__ = ['Sale', 'SaleLine']
 _ZERO = Decimal('0.0')
 
 
-class Sale:
+class Sale(metaclass=PoolMeta):
     __name__ = 'sale.sale'
-    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
@@ -70,9 +69,8 @@ class Sale:
             SaleLine.create(to_create)
 
 
-class SaleLine:
+class SaleLine(metaclass=PoolMeta):
     __name__ = 'sale.line'
-    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
