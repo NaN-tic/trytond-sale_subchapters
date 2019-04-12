@@ -5,6 +5,7 @@ from decimal import Decimal
 from trytond.model import ModelView
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
+from trytond.i18n import gettext
 
 __all__ = ['Sale', 'SaleLine']
 
@@ -79,9 +80,6 @@ class SaleLine(metaclass=PoolMeta):
             if item not in cls.type.selection:
                 cls.type.selection.append(item)
         cls.amount.states['invisible'] &= (Eval('type') != 'subsubtotal')
-        cls._error_messages.update({
-                'subtotal_prefix': 'Subtotal',
-                })
 
     def get_amount(self, name):
         if self.type != 'subsubtotal':
@@ -100,8 +98,7 @@ class SaleLine(metaclass=PoolMeta):
     def get_subtotal(self, sequence):
         Line = Pool().get('sale.line')
         type_ = 'subtotal' if self.type == 'title' else 'subsubtotal'
-        prefix = self.raise_user_error('subtotal_prefix',
-            raise_exception=False)
+        prefix = gettext('sale_subchapters.subtotal_prefix')
         return Line(
             sale=self.sale,
             sequence=sequence,
