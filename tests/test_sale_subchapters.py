@@ -65,7 +65,7 @@ class TestCase(ModuleTestCase):
 
             # Create Chart of Accounts
             create_chart(company)
-            receivable, = Account.search([('kind', '=', 'receivable')])
+            receivable, = Account.search([('type.receivable', '=', True)])
 
             # Create Payment Term
             payment_term, = PaymentTerm.create([{
@@ -177,7 +177,7 @@ class TestCase(ModuleTestCase):
 
             # Create Chart of Accounts
             create_chart(company)
-            receivable, = Account.search([('kind', '=', 'receivable')])
+            receivable, = Account.search([('type.receivable', '=', True)])
 
             # Create Payment Term
             payment_term, = PaymentTerm.create([{
