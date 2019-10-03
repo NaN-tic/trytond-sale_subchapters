@@ -11,6 +11,7 @@
 
         <record model="ir.model.button" id="sale_update_subtotals_button">
             <field name="name">update_subtotals</field>
+            <field name="string">Update Subtotals</field>
             <field name="model" search="[('model', '=', 'sale.sale')]"/>
         </record>
         <record model="ir.model.button-res.group"
