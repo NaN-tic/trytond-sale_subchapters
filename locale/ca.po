@@ -2,9 +2,13 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
-msgctxt "error:sale.line:"
+msgctxt "model:ir.message,text:subtotal_prefix"
 msgid "Subtotal"
 msgstr "Subtotal"
+
+msgctxt "model:ir.model.button,string:sale_update_subtotals_button"
+msgid "Update Subtotals"
+msgstr "Actualitza subtotals"
 
 msgctxt "selection:sale.line,type:"
 msgid "Subsubtotal"
