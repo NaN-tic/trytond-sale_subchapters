@@ -88,6 +88,8 @@ class SaleLine(metaclass=PoolMeta):
         for line2 in self.sale.lines:
             if line2.type in ['title','subtitle']:
                 subsubtotal = _ZERO
+            if line2.type in ['comment']:
+                continue
             if line2.type == 'line':
                 subsubtotal += line2.sale.currency.round(
                     Decimal(str(line2.quantity)) * line2.unit_price)

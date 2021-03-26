@@ -271,7 +271,6 @@ class TestCase(ModuleTestCase):
             check_subtotal(sale1, 13, 'subtotal', ' B', Decimal('10.00'))
 
             # Sale with lines standing alone mixed with titles
-            # SOLUTION: Add title before the lines
             sale2 = self.create_sale(company, customer, payment_term)
             self.create_sale_line(sale2, 'title', suffix=' A')
             self.create_sale_line(sale2, 'line')
