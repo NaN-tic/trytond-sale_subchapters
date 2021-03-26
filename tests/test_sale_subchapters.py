@@ -270,6 +270,33 @@ class TestCase(ModuleTestCase):
             check_subtotal(sale1, 10, 'subtotal', ' A', Decimal('50.00'))
             check_subtotal(sale1, 13, 'subtotal', ' B', Decimal('10.00'))
 
+            # Sale with lines standing alone mixed with titles
+            sale2 = self.create_sale(company, customer, payment_term)
+            self.create_sale_line(sale2, 'title', suffix=' A')
+            self.create_sale_line(sale2, 'line')
+            self.create_sale_line(sale2, 'title', suffix=' B')
+            self.create_sale_line(sale2, 'line')
+            self.create_sale_line(sale2, 'line')
+            sale2.save()
+            self.assertEqual(len(sale2.lines), 5)
+
+            Sale.update_subtotals([sale2])
+            check_subtotal(sale2, -5, 'subtotal', ' A', Decimal('10.00'))
+            check_subtotal(sale2, -1, 'subtotal', ' B', Decimal('20.00'))
+
+            # Sale with lines insede titles mixed with lines inside subtitles
+            sale3 = self.create_sale(company, customer, payment_term)
+            self.create_sale_line(sale3, 'title', suffix=' A')
+            self.create_sale_line(sale3, 'line')
+            self.create_sale_line(sale3, 'subtitle', suffix=' A.1')
+            self.create_sale_line(sale3, 'line')
+            self.create_sale_line(sale3, 'line')
+            sale3.save()
+            self.assertEqual(len(sale3.lines), 5)
+
+            Sale.update_subtotals([sale3])
+            check_subtotal(sale3, -2, 'subsubtotal', ' A.1', Decimal('20.00'))
+            check_subtotal(sale3, -1, 'subtotal', ' A', Decimal('30.00'))
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
