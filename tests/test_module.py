@@ -1,18 +1,17 @@
-# The COPYRIGHT file at the top level of this repository contains the full
-# copyright notices and license terms.
-import unittest
-from decimal import Decimal
 
-import trytond.tests.test_tryton
+# This file is part of Tryton.  The COPYRIGHT file at the top level of
+# this repository contains the full copyright notices and license terms.
+
+from decimal import Decimal
 from trytond.pool import Pool
 from trytond.tests.test_tryton import ModuleTestCase, with_transaction
-
-from trytond.modules.company.tests import create_company, set_company
+from trytond.modules.company.tests import (create_company, set_company,
+    CompanyTestMixin)
 from trytond.modules.account.tests import create_chart
 
 
-class TestCase(ModuleTestCase):
-    'Test module'
+class SaleSubchaptersTestCase(CompanyTestMixin, ModuleTestCase):
+    'Test SaleSubchapters module'
     module = 'sale_subchapters'
 
     def create_sale(self, company, customer, payment_term):
@@ -298,7 +297,6 @@ class TestCase(ModuleTestCase):
             check_subtotal(sale3, -2, 'subsubtotal', ' A.1', Decimal('20.00'))
             check_subtotal(sale3, -1, 'subtotal', ' A', Decimal('30.00'))
 
-def suite():
-    suite = trytond.tests.test_tryton.suite()
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
-    return suite
+
+
+del ModuleTestCase
