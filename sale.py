@@ -9,7 +9,7 @@ from trytond.i18n import gettext
 
 __all__ = ['Sale', 'SaleLine']
 
-_ZERO = Decimal('0.0')
+_ZERO = Decimal(0)
 
 
 class Sale(metaclass=PoolMeta):
