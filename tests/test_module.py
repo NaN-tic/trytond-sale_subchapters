@@ -64,7 +64,7 @@ class SaleSubchaptersTestCase(CompanyTestMixin, ModuleTestCase):
 
             # Create Chart of Accounts
             create_chart(company)
-            receivable, = Account.search([('type.receivable', '=', True)])
+            receivable, = Account.search([('type.receivable', '=', True)], limit=1)
 
             # Create Payment Term
             payment_term, = PaymentTerm.create([{
@@ -176,7 +176,7 @@ class SaleSubchaptersTestCase(CompanyTestMixin, ModuleTestCase):
 
             # Create Chart of Accounts
             create_chart(company)
-            receivable, = Account.search([('type.receivable', '=', True)])
+            receivable, = Account.search([('type.receivable', '=', True)], limit=1)
 
             # Create Payment Term
             payment_term, = PaymentTerm.create([{
