@@ -42,7 +42,7 @@ class Sale(metaclass=PoolMeta):
                 elif line.type in ('subtotal', 'subtitle', 'title'):
                     if subtitle:
                         to_create.append(
-                            subtitle.get_subtotal(sequence)._save_values)
+                            subtitle.get_subtotal(sequence)._save_values())
                         sequence += 1
                     if line.type == 'subtotal':
                         title = subtitle = None
@@ -51,7 +51,7 @@ class Sale(metaclass=PoolMeta):
                     elif line.type == 'title':
                         if title:
                             to_create.append(
-                                title.get_subtotal(sequence)._save_values)
+                                title.get_subtotal(sequence)._save_values())
                             sequence += 1
                         title = line
                         subtitle = None
@@ -61,11 +61,11 @@ class Sale(metaclass=PoolMeta):
                 sequence += 1
             if subtitle:
                 to_create.append(
-                    subtitle.get_subtotal(sequence)._save_values)
+                    subtitle.get_subtotal(sequence)._save_values())
                 sequence += 1
             if title:
                 to_create.append(
-                    title.get_subtotal(sequence)._save_values)
+                    title.get_subtotal(sequence)._save_values())
         if to_create:
             SaleLine.create(to_create)
 
