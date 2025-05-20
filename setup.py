@@ -9,9 +9,7 @@ from configparser import ConfigParser
 
 MODULE = 'sale_subchapters'
 PREFIX = 'nantic'
-MODULE2PREFIX = {
-    'account_invoice_subchapters': 'nantic',
-    }
+MODULE2PREFIX = {}
 
 
 def read(fname):
@@ -58,14 +56,7 @@ if minor_version % 2:
 else:
     branch = series
 
-dependency_links = [
-    ('hg+https://bitbucket.org/nantic/'
-        'trytond-account_invoice_subchapters@%(branch)s'
-        '#egg=nantic-account_invoice_subchapters-%(series)s' % {
-            'branch': branch,
-            'series': series,
-            }),
-    ]
+dependency_links = []
 
 if minor_version % 2:
     # Add development index for testing with proteus
@@ -125,3 +116,4 @@ setup(name='%s_%s' % (PREFIX, MODULE),
     test_suite='tests',
     test_loader='trytond.test_loader:Loader',
     tests_require=tests_require,
+    )
